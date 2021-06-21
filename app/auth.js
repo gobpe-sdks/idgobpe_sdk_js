@@ -29,7 +29,7 @@ var isReload = false;
 var loadedFired = false;
 var acrBig = [IDGobPeConst.ACR_CERTIFICATE_DNIE, IDGobPeConst.ACR_CERTIFICATE_TOKEN, IDGobPeConst.ACR_CERTIFICATE_DNIE_LEGACY, IDGobPeConst.ACR_CERTIFICATE_TOKEN_LEGACY];
 var defaultWidth = 400;
-var defaultBigWidth = 800;
+var defaultBigWidth = 1000;
 
 var IDGobPe = {
     init: function (params) {
@@ -39,7 +39,7 @@ var IDGobPe = {
     auth: function () {
         url = getLoginUrl(false);
         width = acrBig.indexOf(availableParams.acr) >= 0 ? defaultBigWidth : defaultWidth;
-        openPopup(url, title, width, 650);
+        openPopup(url, title, width, 700);
     },
 
     logout: function (redirect) {
