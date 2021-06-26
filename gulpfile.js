@@ -21,6 +21,7 @@ gulp.task('default', function () {
         .pipe(replace('process.env.TOKEN_URL', process.env.TOKEN_URL))
         .pipe(replace('process.env.USERINFO_URL', process.env.USERINFO_URL))
         .pipe(replace('process.env.LOGOUT_URL', process.env.LOGOUT_URL))
+        .pipe(replace('process.env.IDP_URIS', process.env.IDP_URIS))
         .pipe(uglify())
         .pipe(gulp.dest('dist'));
 });

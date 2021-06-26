@@ -9,7 +9,10 @@ var idgobpeUris = {
     logout: 'process.env.LOGOUT_URL'
 };
 
+var idpUris = 'process.env.IDP_URIS';
+
 var title = 'Plataforma de Autenticación ID Gob.pe';
+
 var availableParams = {
     clientId: null,
     scopes: [],
@@ -29,7 +32,7 @@ var isReload = false;
 var loadedFired = false;
 var acrBig = [IDGobPeConst.ACR_CERTIFICATE_DNIE, IDGobPeConst.ACR_CERTIFICATE_TOKEN, IDGobPeConst.ACR_CERTIFICATE_DNIE_LEGACY, IDGobPeConst.ACR_CERTIFICATE_TOKEN_LEGACY];
 var defaultWidth = 400;
-var defaultBigWidth = 1000;
+var defaultBigWidth = 700;
 
 var IDGobPe = {
     init: function (params) {
@@ -188,9 +191,12 @@ function resetInitial() {
     isReload = false;
 }
 
+idpUris = idpUris.split(',');
+idpUris.push(idgobpeUris.auth);
+
 /*Events*/
 window.addEventListener('message', function (event) {
-    if (idgobpeUris.auth.indexOf(event.origin) === 0) {
+    if (idpUris.indexOf(event.origin) !== -1) {
         switch (event.data.event) {
             case IDGobPeConst.EVENT_LOADED:
                 if (!loadedFired) {
