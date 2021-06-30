@@ -26,6 +26,7 @@ var popup = null;
 var onCancelAction = null;
 var onSuccessAction = null;
 var onLoadAction = null;
+var onErrorAction = null;
 var state = null;
 var nonce = null;
 var isReload = false;
@@ -61,6 +62,10 @@ var IDGobPe = {
 
     onSuccess: function (callback) {
         onSuccessAction = callback;
+    },
+
+    onError: function (callback) {
+        onErrorAction = callback;
     }
 };
 
@@ -191,6 +196,24 @@ function resetInitial() {
     isReload = false;
 }
 
+function cancelProcess() {
+    resetInitial();
+
+    if (typeof onCancelAction === "function") {
+        onCancelAction();
+    }
+}
+
+function errorProcess() {
+    resetInitial();
+
+    console.log('Error in auth process');
+
+    if (typeof onErrorAction === "function") {
+        onErrorAction();
+    }
+}
+
 idpUris = idpUris.split(',');
 idpUris.push(idgobpeUris.auth);
 
@@ -224,46 +247,60 @@ window.addEventListener('message', function (event) {
                         console.info(event.data.data.error);
                         console.info(event.data.data.error_description);
 
-                        if (typeof onCancelAction === "function") {
-                            onCancelAction();
-                        }
+                        cancelProcess();
                         break;
                     }
 
-                    var idTokenParser = parseJwt(event.data.data.id_token);
+                    if (event.data.data.id_token) {
+                        var idTokenParser = parseJwt(event.data.data.id_token);
 
-                    if (nonce === idTokenParser.nonce) {
-                        var response = {
-                            idToken: event.data.data.id_token,
-                            idTokenParser: idTokenParser
-                        };
+                        if (nonce === idTokenParser.nonce) {
+                            var response = {
+                                idToken: event.data.data.id_token,
+                                idTokenParser: idTokenParser
+                            };
 
-                        if (event.data.data.access_token) {
-                            procUserInfo(event.data.data.access_token, function (userInfo) {
-                                response['userInfo'] = userInfo;
-
+                            if (event.data.data.access_token) {
+                                procUserInfo(event.data.data.access_token, function (userInfo) {
+                                    if (userInfo) {
+                                        response['userInfo'] = userInfo;
+                                        procFinalResponse(response);
+                                    } else {
+                                        errorProcess();
+                                    }
+                                });
+                            } else {
                                 procFinalResponse(response);
-                            });
+                            }
                         } else {
-                            procFinalResponse(response);
+                            console.error('Wrong nonce');
+                            errorProcess();
                         }
+                    } else if (event.data.data.access_token) {
+                        var response = {};
+
+                        procUserInfo(event.data.data.access_token, function (userInfo) {
+                            if (userInfo) {
+                                response['userInfo'] = userInfo;
+                                procFinalResponse(response);
+                            } else {
+                                errorProcess();
+                            }
+                        });
                     } else {
-                        console.error('Wrong nonce');
+                        errorProcess();
                     }
                 } else {
                     console.error('Wrong state');
+                    errorProcess();
                 }
 
                 break;
 
             case IDGobPeConst.EVENT_CANCEL:
                 if (!isReload) {
-                    resetInitial();
                     console.info('Event fired: ' + IDGobPeConst.EVENT_CANCEL);
-
-                    if (typeof onCancelAction === "function") {
-                        onCancelAction();
-                    }
+                    cancelProcess();
                 }
 
                 isReload = false;
@@ -272,12 +309,7 @@ window.addEventListener('message', function (event) {
             case IDGobPeConst.ERROR_INVALID_ORIGIN_JS:
                 console.info('Event fired: ' + IDGobPeConst.ERROR_INVALID_ORIGIN_JS);
                 console.info(event.data);
-
-                resetInitial();
-
-                if (typeof onCancelAction === "function") {
-                    onCancelAction();
-                }
+                cancelProcess();
                 break;
         }
     }
