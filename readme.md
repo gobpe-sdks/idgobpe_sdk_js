@@ -1,3 +1,3 @@
 # Proyecto deprecado
 
-Versiones actualizadas en: https://github.com/gobpe-sdks
+Versiones actualizadas en: https://github.com/idgobpe-sdk?tab=repositories
